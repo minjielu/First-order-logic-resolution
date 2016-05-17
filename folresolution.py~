@@ -1,51 +1,10 @@
 # -----------------------------------------------------------------------------
-# A parser for simple first order logic sentence using David Beazley's PLY.
+# This program simulate a simple first order resolution process
 #
 #
 # -----------------------------------------------------------------------------
-import ply.lex as lex
 
-
-tokens = [
-    'AND','OR',
-    'IMPLIES','IFANDONLYIF',
-    'LPAREN','RPAREN','QUANTIFIER','ATOMICSENTENCE']
-
-# Tokens
-t_AND          = r'\&'
-t_OR           = r'\|'
-t_IMPLIES      = r'\=>'
-t_IFANDONLYIF  = r'\<=>'
-t_LPAREN       = r'\['
-t_RPAREN       = r'\]'
-
-# Ignored characters
-t_ignore = " \t"
-    
-def t_QUANTIFIER(t):
-    r'[a-zA-Z_][a-zA-Z_0-9\(\)\{\}\,]*'
-    if '{' in t.value:
-        t.type = 'QUANTIFIER'
-    else:
-        t.type = 'ATOMICSENTENCE'
-    return t
-
-def t_newline(t):
-    r'\n+'
-    t.lexer.lineno += t.value.count("\n")
-    
-def t_error(t):
-    print("Illegal character '%s'" % t.value[0])
-    t.lexer.skip(1)
-    
-# Build the lexer
-lexer = lex.lex()
-
-# Build the tree for a logic sentence according to expression rule
-precedence = (
-    ('left', 'AND', 'OR', 'IMPLIES', 'IFANDONLYIF'),
-    )
-
+#define a class to Node to help manipulate trees
 class Node:
     def __init__(self,type,children=None,leaf=None):
          self.type = type
@@ -54,40 +13,6 @@ class Node:
          else:
               self.children = [ ]
          self.leaf = leaf
-
-
-def p_expression_quantifier(p):
-    'expression : QUANTIFIER expression'
-    p[0] = Node('QUANTIFIER', p[2], p[1])
-
-def p_expression_operator(p):
-    '''expression : expression AND expression
-                 | expression OR expression
-                 | expression IMPLIES expression
-                 | expression IFANDONLYIF expression'''
-    p[0] = Node('OPERATOR', [p[1], p[3]], p[2])
-
-def p_expression_group(p):
-    'expression : LPAREN expression RPAREN'
-    p[0] = p[2]
-
-def p_expression_atomicsentence(p):
-    'expression : ATOMICSENTENCE'
-    p[0] = Node('ATOMICSENTENCE', [], p[1])
-
-def p_error(p):
-    try:
-        print("Syntax error at '%s'" % p.value)
-    except:  
-        print("Syntax error. An equation is expected.")
-
-#build the yacc
-import ply.yacc as yacc
-yacc.yacc()
-
-
-def parse(s):
-    return yacc.parse(s)
 
 #This function will find the 'implies' in a tree for a logic sentence in order to remove them. The pointer to the 'implies' and the layer regarding the tree which the 'implies' is in will be recorded.
 def FindImplies(Tree):
@@ -279,53 +204,306 @@ def AddNewClause(SubTree):
     else:
         AddNewClause(SubTree.children[0])
 	AddNewClause(SubTree.children[1])
-    
-    
+
+#This function tells whether two liters are Unifierable according to the definition.
+def Unifierable(Liter1, Liter2):
+    if Liter1.leaf == 'not':
+        predicate1 = Liter1.children[0].leaf
+	Liter1 = Liter1.children[0]
+    else:
+        predicate1 = Liter1.leaf
+    if Liter2.leaf == 'not':
+        predicate2 = Liter2.children[0].leaf
+        Liter2 = Liter2.children[0]
+    else:
+        predicate2 = Liter2.leaf
+    if predicate1 == predicate2:
+        for i in range(len(Liter1.children)):
+	    if Liter1.children[i].type != 'VARIABLES' and Liter2.children[i].type != 'VARIABLES' and Liter1.children[i].leaf != Liter2.children[i].leaf:
+		return False
+	return True
+    else:
+        return False
+
+#This is the function to realize resolution. Resolution starts between previous clauses and new clauses and then among new clauses.
+def Resolution(SentenceArray, NewSentence):
+    NSentence, HaveNew = [[]], 0
+    for i in range(1, len(SentenceArray)):
+	for j in range(1, len(NewSentence)):
+	    for m in range(len(SentenceArray[i])-1):
+		for n in range(len(NewSentence[j])-1):
+		    Comp = Compare(SentenceArray, NewSentence, i, j, m, n)
+		    if Comp[0] == True and Comp[1] == []:
+			return Comp
+		    elif Comp[0] == True and Comp[1] != []:
+			HaveNew = 1
+			NSentence.append(Comp[1])
+		    elif Comp[0] == False and Comp[1] != []:
+			return [False, []]
+    for i in range(1, len(NewSentence)):
+	for j in range(i+1, len(NewSentence)):
+	    for m in range(len(NewSentence[i])-1):
+		for n in range(len(NewSentence[j])-1):
+		    Comp = Compare(NewSentence, NewSentence, i, j, m, n)
+		    if Comp[0] == True and Comp[1] == []:
+			return Comp
+		    elif Comp[0] == True and Comp[1] != []:
+			HaveNew = 1
+			NSentence.append(Comp[1])
+		    elif Comp[0] == False and Comp[1] != []:
+			return [False, []]
+    if HaveNew == 0:
+	print haha
+	return [False, []]
+    else:
+	return [True, NSentence]
+
+#The following functions compare the two liters that are unifierable to decide whether a resolution occurs or a conclusion can be drawn.
+def Compare(SenArrayA, SenArrayB, i, j, m, n):
+    Liter1 = AtomicSentenceParser.atomicparse(SenArrayA[i][m])
+    Liter2 = AtomicSentenceParser.atomicparse(SenArrayB[j][n])
+    if Unifierable(Liter1, Liter2):
+	return Unify(SenArrayA[i], SenArrayB[j], m, n)
+    else:
+	return [False, []]
+
+def SearchVar(Tree):
+    OVari = []
+    if Tree.type == 'VARIABLES':
+	OVari.append(Tree.leaf)
+    for i in range(len(Tree.children)):
+	if Tree.children != []:
+	    OVari.append(SearchVar(Tree.children[i]))
+    return OVari
+
+def NewOVariables(SenArray):
+    OVari = []
+    for i in range(len(SenArray)):
+	OVari.append(SearchVar(SenArray[i]))
+    return OVari
+
+#If a resolution occurs, this function combines two clauses to get the new resolved clause.
+def Unify(SenArrayA, SenArrayB, m, n):
+    global Firstiteration
+    SenB, SenA, NSenStr= [], [], []
+    for i in range(len(SenArrayA)-1):
+	Sentree = AtomicSentenceParser.atomicparse(SenArrayA[i])
+	SenA.append(Sentree)
+    for i in range(len(SenArrayB)-1):
+	Sentree = AtomicSentenceParser.atomicparse(SenArrayB[i])
+	SenB.append(Sentree)
+    if len(SenArrayA) == 2 and len(SenArrayB) == 2:
+	if SenA[m].leaf != SenB[n].leaf:
+            return [True, []]
+	else:
+            if Firstiteration == True: 
+	        return [False, [False]]
+    if SenA[m].leaf == SenB[n].leaf:
+	return [False, []]
+    OVariA = NewOVariables(SenA)
+    OVariB = NewOVariables(SenB)
+    Variables = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v']    
+    for i in range(len(OVariA)):
+        if OVariA[i] in Variables:
+            Variables.remove(OVariA[i])
+    for i in range(len(OVariB)):
+	NewChangeVariables(SenB, OVariB[i], Variables[i])
+    NSenA, NSenB = SenA[m], SenB[n]
+    if SenA[m].leaf == 'not':
+	NSenA = SenA[m].children[0]
+    if SenB[n].leaf == 'not':
+	NSenB = SenB[n].children[0]
+    for i in range(len(NSenA.children)):
+	if NSenB.children[i].type == 'VARIABLES':
+	    NewChangeVariables(SenB, NSenB.children[i].leaf, NSenA.children[i])
+	elif NSenA.children[i].type == 'VARIABLES':
+	    NewChangeVariables(SenA, NSenA.children[i].leaf, NSenB.children[i])
+    for i in range(len(SenA)):
+	if i != m:
+            NSenStr.append(TreetoStr(SenA[i]))
+    for i in range(len(SenB)):
+	if i != n:
+	    NSenStr.append(TreetoStr(SenB[i]))
+    return [True, NSenStr]
+
+def TreetoStr(Tree):
+    if Tree.type == 'PAREN':
+	for i in range(len(Tree.children)):
+	    if i == 0:
+	        NStr = TreetoStr(Tree.children[i])
+	    else:
+		NStr = NStr + ',' + TreetoStr(Tree.children[i])
+        return Tree.leaf + '(' + NStr + ')'
+    if Tree.type == 'CONSTANTS' or Tree.type == 'VARIABLES':
+	return Tree.leaf
+
+def NewChangeVariables(SenArray, OVar, NVar):
+    for i in range(len(SenArray)):
+        NewReplaceVariables(SenArray[i], OVar, NVar)
+
+def NewReplaceVariables(Tree, OVar, NVar):
+    if Tree.type == 'VARIABLES' and Tree.leaf == OVar:
+        if isinstance(NVar, str):
+	    Tree.leaf = NVar
+	else:
+	    Tree.type, Tree.children, Tree.leaf = NVar.type, NVar.children, NVar.leaf
+    for i in range(len(Tree.children)):
+	if Tree.children != []:
+            NewReplaceVariables(Tree.children[i], OVar, NVar)
+
+#The following two function find whether two liters in a clause can be factored according to the rules and factor them.
+def Factoring(Clause):
+    i = 0
+    while i <= len(Clause)-2:
+	j = i+1
+	while j <= len(Clause)-2:
+            FactorPara = Factorable(Clause[i], Clause[j])
+	    if FactorPara[0] == True:
+		if FactorPara[1] == 1:
+		    Clause.pop(j)
+		else:
+		    Clause.pop(i)
+	    j += 1
+        i+= 1
+    return Clause
+
+def Factorable(Liter1, Liter2):
+    Abetter, Bbetter = 0, 0
+    SenA = AtomicSentenceParser.atomicparse(Liter1)
+    SenB = AtomicSentenceParser.atomicparse(Liter2)
+    if SenA.leaf == SenB.leaf and SenA.leaf != 'not':
+	for i in range(len(SenA.children)):
+            if SenA.children[i].type == 'VARIABLES':
+                Abetter = 1
+	    elif SenB.children[i].type == 'VARIABLES':
+		Bbetter = 1
+	    elif SenA.children[i].leaf != SenB.children[i].leaf:
+		Abtter, Bbetter = 1, 1
+        if Abtter == 1 and Bbetter == 1:
+	    return False, 1, 1
+	else:
+	    return True, 1-Bbetter, Bbetter
+    else:
+        return False, 1, 1
+
 #This part parse the input sentences of a knowledge base into trees
-data = 'ForAll{x} [ForAll{y} Animal(y) => Loves(x,y)] => [Exist{y} Loves(y,x)]'
-tree = parse(data)
+
+Onetime = True
+while Onetime:
+    try:
+        s = raw_input('Please ask a question about KB > ')   # use input() on Python 3
+    except EOFError:
+        print
+        break
+
+    try:
+        Complete = raw_input("Do you need complete resolution? ('Y' or 'N') > ")   # use input() on Python 3
+    except EOFError:
+        print
+        break
+
+    import SentenceParser
+    file = open('KB_Enemy.txt', 'r')
+    data = file.read()
+    file.close()
+    data = data.split('\n')
+    data.remove('')
+    data.append(s)
+    NumberofClauses = 0
+    SentenceArray = [[]]
+    for j in range(len(data)):
+        SingleSentence = data[j]
+        tree = SentenceParser.parse(SingleSentence)
 
 #This part find the position of implies '=>' in every sentence and sort them according to the depth in the tree. Then remove them according to the rule 'A => B' equals 'not(A) | B'
-layer = 0
-ImpliesPosition = [[tree, -1]]
-FindImplies(tree)
-ImpliesPosition.sort(key = lambda x: int(x[1]), reverse = True)
-for i in range(len(ImpliesPosition)-1):
-    ImpliesPosition[i][0].leaf = '|'
-    ApplyNot(ImpliesPosition[i][0].children[0])
+        layer = 0
+        ImpliesPosition = [[tree, -1]]
+        FindImplies(tree)
+        ImpliesPosition.sort(key = lambda x: int(x[1]), reverse = True)
+        for i in range(len(ImpliesPosition)-1):
+            ImpliesPosition[i][0].leaf = '|'
+            ApplyNot(ImpliesPosition[i][0].children[0])
+
+#Reverse the query
+        if j == len(data) - 1:
+	    ApplyNot(tree)
 
 #This part apply variable standardization to each sentence to reduce confusion before we drop the quantifiers. Every quantifier is in charge of all the variables to the right of it in its group.
-Variables = ['x', 'y', 'z', 'a', 'b', 'c', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w']
-OldVariables = []
-FindOVariables(tree)
+        Variables = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v']
+        OldVariables = []
+        FindOVariables(tree)
 #All the old variables are picked out and abondoned. Later they will be replaced by new variables. This is a simple way to avoid conflict when we replace them.
-for i in range(len(OldVariables)):
-    if OldVariables[i] in Variables:
-        Variables.remove(OldVariables[i])
-AssignOrder = 0
-AssignNewQuantifiers(tree)
+        for i in range(len(OldVariables)):
+            if OldVariables[i] in Variables:
+                Variables.remove(OldVariables[i])
+        AssignOrder = 0
+        AssignNewQuantifiers(tree)
 
 #This part apply skolemization to existial quantifiers. The rule is that the arguments of the Skolem function are all the universally quantified variables in whose scope the existential quantifier appears.
-SkolemFunctions = ['F', 'G', 'H', 'I', 'J', 'K'] 
-FunctionAssignOrder = 0
-UniversialVar = []
-AssignSkolemFunctions(tree, UniversialVar)
+        SkolemFunctions = ['Fa', 'Ga', 'Ha', 'Ia', 'Ja', 'Ka'] 
+        FunctionAssignOrder = 0
+        UniversialVar = []
+        AssignSkolemFunctions(tree, UniversialVar)
 
 #This part will remove all the quantifiers by making a copy of the original tree ignoring all the quantifiers.
-NewTree = RemoveQuantifiers(tree)
-tree = NewTree
+        NewTree = RemoveQuantifiers(tree)
+        tree = NewTree
 
 #This part will distribute the 'or' and 'and' function to form a CNF. General rule is like '(A and B) or C' results in '(A or C) and (B or C)'. My strategy is to find all the 'or's and move them to the bottom of the tree until there is no 'and' blow it, starting from the 'or' with the maximum depth.
-layer = 0
-OrsPosition = [[tree, -1]]
-FindOrs(tree)
-OrsPosition.sort(key = lambda x: int(x[1]), reverse = True)
-for i in range(len(OrsPosition)-1):
-    DistributeOrAnd(OrsPosition[i][0])
+        layer = 0
+        OrsPosition = [[tree, -1]]
+        FindOrs(tree)
+        OrsPosition.sort(key = lambda x: int(x[1]), reverse = True)
+        for i in range(len(OrsPosition)-1):
+            DistributeOrAnd(OrsPosition[i][0])
 
 #This part will separate each clauses in CNF and store them in a 2D list. The first dimension of the list indicates different clauses. Single Elements are all atomic sentences. For example, if the sentence is [A or B] & [C or D or E], SentenceArray = [[A, B], [C, D, E]].
-SentenceArray = [[]]
-NumberofClauses = 0
-SeparateClauses(tree)
+        SeparateClauses(tree)
+    
+    import AtomicSentenceParser
+   
+#This part add the length of each element of SentenceArray to the end of each element of it and then sort it according to the length of each clause to make sure that resolution has a order from shorter clauses to longer clauses.
+    for i in range(len(SentenceArray)):
+        SentenceArray[i].append(len(SentenceArray[i]))
 
-print SentenceArray
+#If Complete is N, the first resolution will only be carried out between the KB and the query. No resolution between KB clauses.
+    if Complete == 'Y' or Complete == 'y':
+	NewSentence = SentenceArray
+        SentenceArray = []
+    else:
+	NewSentence = [[],SentenceArray[-1]]
+	SentenceArray.pop()
+
+    SentenceArray.sort(key = lambda x: int(x[-1]))
+
+#Apply factoring to KB and the query
+    for i in range(1,len(SentenceArray)):
+	SentenceArray[i] = Factoring(SentenceArray[i])
+
+#Resolution starts here
+    NoStop, Result = True, False
+    j = 0
+    Firstiteration = True
+    while NoStop:
+	j += 1 
+	Substitute = NewSentence
+	print j
+        NoStop, NewSentence = Resolution(SentenceArray, NewSentence)
+	for i in range(1, len(NewSentence)):
+	    NewSentence[i] = Factoring(NewSentence[i])
+	for i in range(len(NewSentence)):
+	    NewSentence[i].append(len(NewSentence[i]))
+        for i in range(1,len(Substitute)):
+            SentenceArray.append(Substitute[i])
+        if NoStop == True and NewSentence == []:
+	    NoStop, Result = False, True
+	Firstiteration == False
+    print Result
+
+    Onetime = False
+    
+
+
+			 
+
+

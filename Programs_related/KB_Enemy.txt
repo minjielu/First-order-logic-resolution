@@ -1,0 +1,8 @@
+ForAll{x,y,z} American(x) & Weapon(y) & Sells(x,y,z) & Hostile(z) => Criminal(x)
+ForAll{x} Missile(x) & Owns(NONO,x) => Sells(WEST,x,NONO)
+ForAll{x} Enemy(x,AMERICAN) => Hostile(x)
+ForAll{x} Missile(x) => Weapon(x)
+Owns(NONO,MI)
+American(WEST)
+Missile(MI)
+Enemy(NONO,AMERICAN)

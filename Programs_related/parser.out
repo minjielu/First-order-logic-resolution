@@ -1,0 +1,318 @@
+Created by PLY version 3.8 (http://www.dabeaz.com/ply)
+
+Grammar
+
+Rule 0     S' -> expression
+Rule 1     expression -> QUANTIFIER expression
+Rule 2     expression -> expression AND expression
+Rule 3     expression -> expression OR expression
+Rule 4     expression -> expression IMPLIES expression
+Rule 5     expression -> expression IFANDONLYIF expression
+Rule 6     expression -> LPAREN expression RPAREN
+Rule 7     expression -> ATOMICSENTENCE
+
+Terminals, with rules where they appear
+
+AND                  : 2
+ATOMICSENTENCE       : 7
+IFANDONLYIF          : 5
+IMPLIES              : 4
+LPAREN               : 6
+OR                   : 3
+QUANTIFIER           : 1
+RPAREN               : 6
+error                : 
+
+Nonterminals, with rules where they appear
+
+expression           : 1 2 2 3 3 4 4 5 5 6 0
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . expression
+    (1) expression -> . QUANTIFIER expression
+    (2) expression -> . expression AND expression
+    (3) expression -> . expression OR expression
+    (4) expression -> . expression IMPLIES expression
+    (5) expression -> . expression IFANDONLYIF expression
+    (6) expression -> . LPAREN expression RPAREN
+    (7) expression -> . ATOMICSENTENCE
+
+    QUANTIFIER      shift and go to state 3
+    LPAREN          shift and go to state 2
+    ATOMICSENTENCE  shift and go to state 1
+
+    expression                     shift and go to state 4
+
+state 1
+
+    (7) expression -> ATOMICSENTENCE .
+
+    RPAREN          reduce using rule 7 (expression -> ATOMICSENTENCE .)
+    AND             reduce using rule 7 (expression -> ATOMICSENTENCE .)
+    OR              reduce using rule 7 (expression -> ATOMICSENTENCE .)
+    IMPLIES         reduce using rule 7 (expression -> ATOMICSENTENCE .)
+    IFANDONLYIF     reduce using rule 7 (expression -> ATOMICSENTENCE .)
+    $end            reduce using rule 7 (expression -> ATOMICSENTENCE .)
+
+
+state 2
+
+    (6) expression -> LPAREN . expression RPAREN
+    (1) expression -> . QUANTIFIER expression
+    (2) expression -> . expression AND expression
+    (3) expression -> . expression OR expression
+    (4) expression -> . expression IMPLIES expression
+    (5) expression -> . expression IFANDONLYIF expression
+    (6) expression -> . LPAREN expression RPAREN
+    (7) expression -> . ATOMICSENTENCE
+
+    QUANTIFIER      shift and go to state 3
+    LPAREN          shift and go to state 2
+    ATOMICSENTENCE  shift and go to state 1
+
+    expression                     shift and go to state 5
+
+state 3
+
+    (1) expression -> QUANTIFIER . expression
+    (1) expression -> . QUANTIFIER expression
+    (2) expression -> . expression AND expression
+    (3) expression -> . expression OR expression
+    (4) expression -> . expression IMPLIES expression
+    (5) expression -> . expression IFANDONLYIF expression
+    (6) expression -> . LPAREN expression RPAREN
+    (7) expression -> . ATOMICSENTENCE
+
+    QUANTIFIER      shift and go to state 3
+    LPAREN          shift and go to state 2
+    ATOMICSENTENCE  shift and go to state 1
+
+    expression                     shift and go to state 6
+
+state 4
+
+    (0) S' -> expression .
+    (2) expression -> expression . AND expression
+    (3) expression -> expression . OR expression
+    (4) expression -> expression . IMPLIES expression
+    (5) expression -> expression . IFANDONLYIF expression
+
+    AND             shift and go to state 7
+    OR              shift and go to state 9
+    IMPLIES         shift and go to state 8
+    IFANDONLYIF     shift and go to state 10
+
+
+state 5
+
+    (6) expression -> LPAREN expression . RPAREN
+    (2) expression -> expression . AND expression
+    (3) expression -> expression . OR expression
+    (4) expression -> expression . IMPLIES expression
+    (5) expression -> expression . IFANDONLYIF expression
+
+    RPAREN          shift and go to state 11
+    AND             shift and go to state 7
+    OR              shift and go to state 9
+    IMPLIES         shift and go to state 8
+    IFANDONLYIF     shift and go to state 10
+
+
+state 6
+
+    (1) expression -> QUANTIFIER expression .
+    (2) expression -> expression . AND expression
+    (3) expression -> expression . OR expression
+    (4) expression -> expression . IMPLIES expression
+    (5) expression -> expression . IFANDONLYIF expression
+
+  ! shift/reduce conflict for AND resolved as shift
+  ! shift/reduce conflict for OR resolved as shift
+  ! shift/reduce conflict for IMPLIES resolved as shift
+  ! shift/reduce conflict for IFANDONLYIF resolved as shift
+    RPAREN          reduce using rule 1 (expression -> QUANTIFIER expression .)
+    $end            reduce using rule 1 (expression -> QUANTIFIER expression .)
+    AND             shift and go to state 7
+    OR              shift and go to state 9
+    IMPLIES         shift and go to state 8
+    IFANDONLYIF     shift and go to state 10
+
+  ! AND             [ reduce using rule 1 (expression -> QUANTIFIER expression .) ]
+  ! OR              [ reduce using rule 1 (expression -> QUANTIFIER expression .) ]
+  ! IMPLIES         [ reduce using rule 1 (expression -> QUANTIFIER expression .) ]
+  ! IFANDONLYIF     [ reduce using rule 1 (expression -> QUANTIFIER expression .) ]
+
+
+state 7
+
+    (2) expression -> expression AND . expression
+    (1) expression -> . QUANTIFIER expression
+    (2) expression -> . expression AND expression
+    (3) expression -> . expression OR expression
+    (4) expression -> . expression IMPLIES expression
+    (5) expression -> . expression IFANDONLYIF expression
+    (6) expression -> . LPAREN expression RPAREN
+    (7) expression -> . ATOMICSENTENCE
+
+    QUANTIFIER      shift and go to state 3
+    LPAREN          shift and go to state 2
+    ATOMICSENTENCE  shift and go to state 1
+
+    expression                     shift and go to state 12
+
+state 8
+
+    (4) expression -> expression IMPLIES . expression
+    (1) expression -> . QUANTIFIER expression
+    (2) expression -> . expression AND expression
+    (3) expression -> . expression OR expression
+    (4) expression -> . expression IMPLIES expression
+    (5) expression -> . expression IFANDONLYIF expression
+    (6) expression -> . LPAREN expression RPAREN
+    (7) expression -> . ATOMICSENTENCE
+
+    QUANTIFIER      shift and go to state 3
+    LPAREN          shift and go to state 2
+    ATOMICSENTENCE  shift and go to state 1
+
+    expression                     shift and go to state 13
+
+state 9
+
+    (3) expression -> expression OR . expression
+    (1) expression -> . QUANTIFIER expression
+    (2) expression -> . expression AND expression
+    (3) expression -> . expression OR expression
+    (4) expression -> . expression IMPLIES expression
+    (5) expression -> . expression IFANDONLYIF expression
+    (6) expression -> . LPAREN expression RPAREN
+    (7) expression -> . ATOMICSENTENCE
+
+    QUANTIFIER      shift and go to state 3
+    LPAREN          shift and go to state 2
+    ATOMICSENTENCE  shift and go to state 1
+
+    expression                     shift and go to state 14
+
+state 10
+
+    (5) expression -> expression IFANDONLYIF . expression
+    (1) expression -> . QUANTIFIER expression
+    (2) expression -> . expression AND expression
+    (3) expression -> . expression OR expression
+    (4) expression -> . expression IMPLIES expression
+    (5) expression -> . expression IFANDONLYIF expression
+    (6) expression -> . LPAREN expression RPAREN
+    (7) expression -> . ATOMICSENTENCE
+
+    QUANTIFIER      shift and go to state 3
+    LPAREN          shift and go to state 2
+    ATOMICSENTENCE  shift and go to state 1
+
+    expression                     shift and go to state 15
+
+state 11
+
+    (6) expression -> LPAREN expression RPAREN .
+
+    RPAREN          reduce using rule 6 (expression -> LPAREN expression RPAREN .)
+    AND             reduce using rule 6 (expression -> LPAREN expression RPAREN .)
+    OR              reduce using rule 6 (expression -> LPAREN expression RPAREN .)
+    IMPLIES         reduce using rule 6 (expression -> LPAREN expression RPAREN .)
+    IFANDONLYIF     reduce using rule 6 (expression -> LPAREN expression RPAREN .)
+    $end            reduce using rule 6 (expression -> LPAREN expression RPAREN .)
+
+
+state 12
+
+    (2) expression -> expression AND expression .
+    (2) expression -> expression . AND expression
+    (3) expression -> expression . OR expression
+    (4) expression -> expression . IMPLIES expression
+    (5) expression -> expression . IFANDONLYIF expression
+
+    RPAREN          reduce using rule 2 (expression -> expression AND expression .)
+    AND             reduce using rule 2 (expression -> expression AND expression .)
+    OR              reduce using rule 2 (expression -> expression AND expression .)
+    IMPLIES         reduce using rule 2 (expression -> expression AND expression .)
+    IFANDONLYIF     reduce using rule 2 (expression -> expression AND expression .)
+    $end            reduce using rule 2 (expression -> expression AND expression .)
+
+  ! AND             [ shift and go to state 7 ]
+  ! OR              [ shift and go to state 9 ]
+  ! IMPLIES         [ shift and go to state 8 ]
+  ! IFANDONLYIF     [ shift and go to state 10 ]
+
+
+state 13
+
+    (4) expression -> expression IMPLIES expression .
+    (2) expression -> expression . AND expression
+    (3) expression -> expression . OR expression
+    (4) expression -> expression . IMPLIES expression
+    (5) expression -> expression . IFANDONLYIF expression
+
+    RPAREN          reduce using rule 4 (expression -> expression IMPLIES expression .)
+    AND             reduce using rule 4 (expression -> expression IMPLIES expression .)
+    OR              reduce using rule 4 (expression -> expression IMPLIES expression .)
+    IMPLIES         reduce using rule 4 (expression -> expression IMPLIES expression .)
+    IFANDONLYIF     reduce using rule 4 (expression -> expression IMPLIES expression .)
+    $end            reduce using rule 4 (expression -> expression IMPLIES expression .)
+
+  ! AND             [ shift and go to state 7 ]
+  ! OR              [ shift and go to state 9 ]
+  ! IMPLIES         [ shift and go to state 8 ]
+  ! IFANDONLYIF     [ shift and go to state 10 ]
+
+
+state 14
+
+    (3) expression -> expression OR expression .
+    (2) expression -> expression . AND expression
+    (3) expression -> expression . OR expression
+    (4) expression -> expression . IMPLIES expression
+    (5) expression -> expression . IFANDONLYIF expression
+
+    RPAREN          reduce using rule 3 (expression -> expression OR expression .)
+    AND             reduce using rule 3 (expression -> expression OR expression .)
+    OR              reduce using rule 3 (expression -> expression OR expression .)
+    IMPLIES         reduce using rule 3 (expression -> expression OR expression .)
+    IFANDONLYIF     reduce using rule 3 (expression -> expression OR expression .)
+    $end            reduce using rule 3 (expression -> expression OR expression .)
+
+  ! AND             [ shift and go to state 7 ]
+  ! OR              [ shift and go to state 9 ]
+  ! IMPLIES         [ shift and go to state 8 ]
+  ! IFANDONLYIF     [ shift and go to state 10 ]
+
+
+state 15
+
+    (5) expression -> expression IFANDONLYIF expression .
+    (2) expression -> expression . AND expression
+    (3) expression -> expression . OR expression
+    (4) expression -> expression . IMPLIES expression
+    (5) expression -> expression . IFANDONLYIF expression
+
+    RPAREN          reduce using rule 5 (expression -> expression IFANDONLYIF expression .)
+    AND             reduce using rule 5 (expression -> expression IFANDONLYIF expression .)
+    OR              reduce using rule 5 (expression -> expression IFANDONLYIF expression .)
+    IMPLIES         reduce using rule 5 (expression -> expression IFANDONLYIF expression .)
+    IFANDONLYIF     reduce using rule 5 (expression -> expression IFANDONLYIF expression .)
+    $end            reduce using rule 5 (expression -> expression IFANDONLYIF expression .)
+
+  ! AND             [ shift and go to state 7 ]
+  ! OR              [ shift and go to state 9 ]
+  ! IMPLIES         [ shift and go to state 8 ]
+  ! IFANDONLYIF     [ shift and go to state 10 ]
+
+WARNING: 
+WARNING: Conflicts:
+WARNING: 
+WARNING: shift/reduce conflict for AND in state 6 resolved as shift
+WARNING: shift/reduce conflict for OR in state 6 resolved as shift
+WARNING: shift/reduce conflict for IMPLIES in state 6 resolved as shift
+WARNING: shift/reduce conflict for IFANDONLYIF in state 6 resolved as shift

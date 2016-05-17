@@ -1,0 +1,4 @@
+ForAll{x} Aggie(x) & Goodman(x) => Honest(x)
+ForAll{x} Honest(x) => Loves(PROFESSOR,x)
+Aggie(WEST)
+Goodman(WEST)
